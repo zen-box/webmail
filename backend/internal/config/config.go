@@ -27,6 +27,7 @@ type YamlConfig struct {
 }
 
 type Config struct {
+	Host         string
 	Port         string
 	StalwartURL  string
 	CookieSecret string
@@ -36,6 +37,7 @@ type Config struct {
 
 func Load() *Config {
 	cfg := &Config{
+		Host:         "0.0.0.0",
 		Port:         "8080",
 		StalwartURL:  "https://mail.example.com",
 		CookieSecret: "default-auto-generated",
@@ -67,6 +69,9 @@ func Load() *Config {
 		if err == nil {
 			var ycfg YamlConfig
 			if err := yaml.Unmarshal(data, &ycfg); err == nil {
+				if ycfg.Server.Host != "" {
+					cfg.Host = ycfg.Server.Host
+				}
 				if ycfg.Server.Port != "" {
 					cfg.Port = ycfg.Server.Port
 				}

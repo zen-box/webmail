@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -29,14 +30,23 @@ func main() {
 	// 3. CORS & Logging Middleware
 	handler := loggingMiddleware(corsMiddleware(mux))
 
+	listenAddr := net.JoinHostPort(cfg.Host, cfg.Port)
+	if cfg.Host == "" {
+		listenAddr = ":" + cfg.Port
+	}
+
 	server := &http.Server{
-		Addr:         ":" + cfg.Port,
+		Addr:         listenAddr,
 		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 	}
 
-	fmt.Printf("\n🚀 HeroUI Pro Mail Server (Single Binary) running at http://localhost:%s\n", cfg.Port)
+	displayHost := cfg.Host
+	if displayHost == "" || displayHost == "0.0.0.0" {
+		displayHost = "localhost"
+	}
+	fmt.Printf("\n🚀 HeroUI Pro Mail Server (Single Binary) running at http://%s:%s\n", displayHost, cfg.Port)
 	fmt.Printf("📬 Stalwart JMAP Endpoint: %s\n", cfg.StalwartURL)
 	fmt.Printf("🛡️  HTML Sanitization & Tracking Protection: Active (Roundcube washtml model)\n\n")
 
