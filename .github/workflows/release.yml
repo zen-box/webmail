@@ -1,0 +1,68 @@
+name: Release Webmail
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-amd64:
+    name: Build Linux AMD64 Binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: pnpm install
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: pnpm build
+
+      - name: Sync Frontend Dist to Backend
+        run: |
+          rm -rf backend/dist
+          cp -r frontend/dist backend/dist
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build Linux AMD64 Standalone Binary
+        working-directory: ./backend
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../webmail-linux-amd64 .
+
+      - name: Package Release Tarball
+        run: |
+          chmod +x webmail-linux-amd64
+          tar -czvf webmail-linux-amd64.tar.gz webmail-linux-amd64 config.yml
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            webmail-linux-amd64
+            webmail-linux-amd64.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: false

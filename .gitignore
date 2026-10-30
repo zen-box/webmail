@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+.pnpm-store/
+
+# Local database & state (Never commit session tokens or local mail data)
+data/
+*.db
+*.db-wal
+*.db-shm
+.session_secret
+
+# Third-party references
+roundcubemail*/
+task.md
+.vite/
+frontend/.vite/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Build artifacts & binaries
+*.exe
+mail-server
+mail-server.exe
+backend/mail-server
+backend/mail-server.exe
+frontend/dist/

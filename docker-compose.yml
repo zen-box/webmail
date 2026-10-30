@@ -1,0 +1,33 @@
+services:
+  # 1. Stalwart All-in-One Mail Server (JMAP / IMAP / SMTP)
+  stalwart:
+    image: stalwartlabs/mail-server:latest
+    container_name: stalwart-mail
+    restart: unless-stopped
+    ports:
+      - "8080:8080" # Stalwart Admin & JMAP HTTP Port
+      - "25:25"     # SMTP
+      - "465:465"   # SMTPS
+      - "587:587"   # Submission
+      - "993:993"   # IMAPS
+    volumes:
+      - stalwart-data:/opt/stalwart-mail
+
+  # 2. Modern HeroUI + Go Webmail Client (Single Binary)
+  webmail:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: heroui-webmail
+    restart: unless-stopped
+    ports:
+      - "3000:8080" # Webmail Web Interface
+    environment:
+      - PORT=8080
+      - STALWART_URL=http://stalwart:8080
+      - COOKIE_SECRET=heroui-production-secret-change-me
+    depends_on:
+      - stalwart
+
+volumes:
+  stalwart-data:
